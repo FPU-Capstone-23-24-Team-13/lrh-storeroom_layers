@@ -12,14 +12,14 @@
 class Frame {
 public:
     Frame(uint32_t _msg_len, uint8_t* _msg);
-    uint32_t calculateCRC(uint8_t* _msg);
+    void calculate_crc();
 
 private:
     uint32_t msg_len;
     uint8_t* msg;
     uint32_t crc;
 };
-Frame fromBytestream();
-Frame toBytestream();
+void receive_frame();
+void send_frame();
 
 #endif //NETWORKTESTER_FRAME_H
