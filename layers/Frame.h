@@ -6,7 +6,8 @@
 #define NETWORKTESTER_FRAME_H
 
 #include <iostream>
-#include <stdint.h>
+#include <cstdint>
+#include "NetworkInterface.h"
 
 
 
@@ -22,6 +23,6 @@ private:
     uint32_t crc;
 };
 void receive_frame();
-void send_frame();
+void send_frame(uint8_t* message, uint32_t length, NetworkInterface* interface);
 
 #endif //NETWORKTESTER_FRAME_H

@@ -6,4 +6,10 @@ set(CMAKE_CXX_STANDARD 17)
 add_executable(NetworkTester main.cpp
         layers/Frame.cpp
         layers/Frame.h
+        layers/Packet.cpp
+        layers/Packet.h
+        layers/util.h
+        layers/util.cpp
+        layers/NetworkInterface.cpp
+        layers/NetworkInterface.h
 )
