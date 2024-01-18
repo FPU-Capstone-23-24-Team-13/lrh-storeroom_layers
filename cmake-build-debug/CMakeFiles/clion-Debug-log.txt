@@ -1,6 +1,16 @@
 /home/rando/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" -S "/home/rando/Documents/djohnston8968 classes/COP4610/lrh-storeroom_layers" -B "/home/rando/Documents/djohnston8968 classes/COP4610/lrh-storeroom_layers/cmake-build-debug"
-CMake Error at CMakeLists.txt:1 (cmake_minimum_required):
-  CMake 3.27 or higher is required.  You are running version 3.26.4
-
-
--- Configuring incomplete, errors occurred!
+-- The C compiler identification is GNU 11.4.0
+-- The CXX compiler identification is GNU 11.4.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done (0.6s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/rando/Documents/djohnston8968 classes/COP4610/lrh-storeroom_layers/cmake-build-debug

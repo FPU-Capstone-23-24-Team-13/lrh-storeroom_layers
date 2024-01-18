@@ -14,14 +14,12 @@ void Frame::calculate_crc() {
     crc = 0xFFFFFFFF;
 
     for (uint32_t i = 0; i < msg_len; ++i) {
-        for (int j = 0; j < 8; ++j) {
-            uint8_t byte = msg[i];
-            crc = crc ^ byte;
-            for (int j = 7; j >= 0; j--){
-                uint32_t mask = -(crc & 1);
-                crc = (crc >> 1) ^ (crc_polynomial & mask);
-            }
-        }
+         unsigned byte = msg[i];            // Get next byte.
+          crc = crc ^ byte;
+          for (int j = 7; j >= 0; j--) {    // Do eight times.
+             unsigned mask = -(crc & 1);
+             crc = (crc >> 1) ^ (0xEDB88320 & mask);
+          }
     }
 
     // The final CRC value is the one's complement of the calculated CRC
