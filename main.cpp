@@ -3,6 +3,7 @@
 #include "layers/Frame.h"
 #include "layers/Packet.h"
 #include "layers/util.h"
+#include "layers/DummyNetworkInterface.h"
 
 int main() {
     std::cout << "Testing CRC." << std::endl;
@@ -14,7 +15,7 @@ int main() {
     uint32_t sample_message_length = sizeof(sample_message) / sizeof(sample_message[0]);
 
     // Create an instance of the Frame class with the sample message
-    Frame frame_instance(sample_message_length, sample_message);
+    lrhnet::Frame frame_instance(sample_message_length, sample_message);
 
     // Output the calculated CRC
     std::cout << "CRC: 0x" << std::hex << frame_instance.get_crc() << std::endl;
@@ -25,20 +26,23 @@ int main() {
     uint32_t sample_message2_length = sizeof(sample_message2) / sizeof(sample_message2[0]);
 
     // Create an instance of the Frame class with the sample message
-    Frame frame_instance2(sample_message2_length, sample_message2);
+    lrhnet::Frame frame_instance2(sample_message2_length, sample_message2);
 
     // Output the calculated CRC
     std::cout << "CRC: 0x" << std::hex << frame_instance2.get_crc() << std::endl;
 
     std::cout << "Generating and sending a test packet." << std::endl;
-    NetworkInterface ni[] = {NetworkInterface(0), NetworkInterface(1), NetworkInterface(2)};
-    network_interfaces = ni;
-    network_interface_count = 3;
-    Packet p1 = Packet(0x00000013, 0x00000012, 0x66, sample_message2, sample_message2_length);
-    send_packet(&p1, &ni[0]);
+    lrhnet::NetworkInterface* ni[] = {
+            new lrhnet::DummyNetworkInterface(0, sample_message2, sample_message2_length),
+            new lrhnet::DummyNetworkInterface(1, sample_message2, sample_message2_length),
+            new lrhnet::DummyNetworkInterface(2, sample_message2, sample_message2_length)};
+    lrhnet::network_interfaces = ni;
+    lrhnet::network_interface_count = 3;
+    lrhnet::Packet p1 = lrhnet::Packet(0x00000013, 0x00000012, 0x66, sample_message2, sample_message2_length);
+    send_packet(&p1, ni[0]);
     std::cout << "Simulating receiving that same packet from interface 1." << std::endl;
     uint8_t* sample_packet = p1.encode();
-    receive_packet(sample_packet, p1.length + 10, &ni[1]);
+    process_packet_bytes(sample_packet, p1.length + 10, ni[1]);
 
     return 0;
 }

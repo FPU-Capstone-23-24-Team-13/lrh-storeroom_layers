@@ -12,4 +12,6 @@ add_executable(NetworkTester main.cpp
         layers/util.cpp
         layers/NetworkInterface.cpp
         layers/NetworkInterface.h
+        layers/DummyNetworkInterface.cpp
+        layers/DummyNetworkInterface.h
 )
