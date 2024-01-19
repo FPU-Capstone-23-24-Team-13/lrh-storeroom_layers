@@ -13,7 +13,7 @@ class Packet {
 public:
     Packet(uint32_t p_source, uint32_t p_destination, uint8_t p_ttl, uint8_t* message, uint32_t p_length);
     Packet(uint8_t* raw_packet, uint32_t p_length);
-    uint8_t* encode();
+    uint8_t* encode() const;
     bool decay();
     uint32_t source;
     uint32_t destination;

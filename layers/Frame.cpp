@@ -47,10 +47,29 @@ uint32_t Frame::get_crc() const{
 }
 
 uint8_t* Frame::encode(){
-    auto* val = new uint8_t[msg_len + 8];
-    put_uint32_to_pointer(val + 0, msg_len);
-    std::memcpy(val+4, msg, (msg_len) * sizeof(uint8_t));
-    put_uint32_to_pointer(val + 4 + msg_len * sizeof(uint8_t), get_crc());
+    uint8_t buf[msg_len + 8];
+    put_uint32_to_pointer(buf + 0, msg_len);
+    std::memcpy(buf+4, msg, (msg_len) * sizeof(uint8_t));
+    put_uint32_to_pointer(buf + 4 + msg_len * sizeof(uint8_t), get_crc());
+
+    int illegal_char_count = 0;
+    for (int i = 0; i < msg_len + 8; i++){
+        if (buf[i] == 0x7E || buf[i] == 0x7D || buf[i] == 0x00) ++illegal_char_count;
+    }
+
+    auto* val = new uint8_t[msg_len + 10 + illegal_char_count];
+    val[0] = 0x7E;
+    val[msg_len + 9 + illegal_char_count] = 0x00;
+    int counter = 1;
+    for (int i = 0; i < msg_len + 8; i++){
+        if (buf[i] == 0x7E || buf[i] == 0x7D || buf[i] == 0x00){
+            val[counter++] = 0x7D;
+            val[counter++] = buf[i] ^ 0x20;
+        } else {
+            val[counter++] = buf[i];
+        }
+    }
+
     return val;
 }
 
@@ -61,11 +80,14 @@ void receive_frame(){
 void send_frame(uint8_t* message, uint32_t length, NetworkInterface* interface){
     Frame f = Frame(length, message);
     uint8_t* e_f = f.encode();
+    int l = 0;
+    while (e_f[l] != 0x00) l++;
+    l++;
     std::cout << "Interface " << interface->id << " sending frame: 0x";
-    for (uint32_t i = 0; i != length + 8; i++)
+    for (uint32_t i = 0; i != l; i++)
     {
         std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(e_f[i]);
     }
-    std::cout << std::endl;
-    delete e_f;
+    std::cout << " at " << std::hex << reinterpret_cast<void *>(e_f) << std::endl;
+    delete[] e_f;
 }

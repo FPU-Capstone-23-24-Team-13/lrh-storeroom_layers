@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include "layers/Frame.h"
 #include "layers/Packet.h"
 #include "layers/util.h"
@@ -18,7 +19,7 @@ int main() {
     // Output the calculated CRC
     std::cout << "CRC: 0x" << std::hex << frame_instance.get_crc() << std::endl;
 
-    uint8_t sample_message2[] = {0x13, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00, 0x66, 0xab, 0x01, 0x02, 0x03, 0x04, 0x05};
+    uint8_t sample_message2[] = {0x06, 0x07, 0x08, 0x09, 0x0A, 0x7E, 0x00, 0x7D};
 
     // Calculate the length of the sample message
     uint32_t sample_message2_length = sizeof(sample_message2) / sizeof(sample_message2[0]);
@@ -33,11 +34,11 @@ int main() {
     NetworkInterface ni[] = {NetworkInterface(0), NetworkInterface(1), NetworkInterface(2)};
     network_interfaces = ni;
     network_interface_count = 3;
-    Packet p1 = Packet(0x00000013, 0x00000012, 0x66, sample_message, 5);
+    Packet p1 = Packet(0x00000013, 0x00000012, 0x66, sample_message2, sample_message2_length);
     send_packet(&p1, &ni[0]);
     std::cout << "Simulating receiving that same packet from interface 1." << std::endl;
     uint8_t* sample_packet = p1.encode();
-    receive_packet(sample_packet, 15, &ni[1]);
+    receive_packet(sample_packet, p1.length + 10, &ni[1]);
 
     return 0;
 }

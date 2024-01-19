@@ -31,7 +31,7 @@ bool Packet::decay(){
     return false;
 }
 
-uint8_t* Packet::encode(){
+uint8_t* Packet::encode() const{
     auto* val = new uint8_t[length + 10];
     put_uint32_to_pointer(val + 0, source);
     put_uint32_to_pointer(val + 4, destination);
@@ -69,5 +69,5 @@ void send_packet(Packet* p, NetworkInterface* interface){
     //encode the packet
     uint8_t* e_p = p->encode();
     send_frame(e_p, p->length + 10, interface);
-    delete e_p;
+    delete[] e_p;
 }
