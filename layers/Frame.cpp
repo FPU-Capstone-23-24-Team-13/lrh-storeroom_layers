@@ -2,6 +2,8 @@
 // Created by andre on 1/17/2024.
 //
 
+#include "util.h"
+#include <cstring>
 #include <iostream>
 #include <iomanip>
 
@@ -19,20 +21,37 @@ void Frame::calculate_crc() {
     // Initialize CRC with the correct initial value
     crc = 0xFFFFFFFF;
 
+    for (short i = sizeof(msg_len) - 1; i >= 0; --i) {
+        unsigned byte = (msg_len >> (8 * i)) & 0x000000FF;            // Get next byte.
+        crc = crc ^ byte;
+        for (int j = 7; j >= 0; j--) {    // Do eight times.
+            unsigned mask = -(crc & 1);
+            crc = (crc >> 1) ^ (0xEDB88320 & mask);
+        }
+    }
+
     for (uint32_t i = 0; i < msg_len; ++i) {
-         unsigned byte = msg[i];            // Get next byte.
-          crc = crc ^ byte;
-          for (int j = 7; j >= 0; j--) {    // Do eight times.
-             unsigned mask = -(crc & 1);
-             crc = (crc >> 1) ^ (0xEDB88320 & mask);
-          }
+        unsigned byte = msg[i];            // Get next byte.
+        crc = crc ^ byte;
+        for (int j = 7; j >= 0; j--) {    // Do eight times.
+            unsigned mask = -(crc & 1);
+            crc = (crc >> 1) ^ (0xEDB88320 & mask);
+        }
     }
 
     // The final CRC value is the one's complement of the calculated CRC
     crc = ~crc;
 }
-uint32_t Frame::get_crc(){
+uint32_t Frame::get_crc() const{
     return crc;
+}
+
+uint8_t* Frame::encode(){
+    auto* val = new uint8_t[msg_len + 8];
+    put_uint32_to_pointer(val + 0, msg_len);
+    std::memcpy(val+4, msg, (msg_len) * sizeof(uint8_t));
+    put_uint32_to_pointer(val + 4 + msg_len * sizeof(uint8_t), get_crc());
+    return val;
 }
 
 void receive_frame(){
@@ -40,10 +59,13 @@ void receive_frame(){
 }
 
 void send_frame(uint8_t* message, uint32_t length, NetworkInterface* interface){
+    Frame f = Frame(length, message);
+    uint8_t* e_f = f.encode();
     std::cout << "Interface " << interface->id << " sending frame: 0x";
-    for (uint32_t i = 0; i != length; i++)
+    for (uint32_t i = 0; i != length + 8; i++)
     {
-        std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(message[i]);
+        std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(e_f[i]);
     }
     std::cout << std::endl;
+    delete e_f;
 }

@@ -18,7 +18,7 @@ int main() {
     // Output the calculated CRC
     std::cout << "CRC: 0x" << std::hex << frame_instance.get_crc() << std::endl;
 
-    uint8_t sample_message2[] = {0x06, 0x07, 0x08, 0x09, 0x0A};
+    uint8_t sample_message2[] = {0x13, 0x00, 0x00, 0x00, 0x12, 0x00, 0x00, 0x00, 0x66, 0xab, 0x01, 0x02, 0x03, 0x04, 0x05};
 
     // Calculate the length of the sample message
     uint32_t sample_message2_length = sizeof(sample_message2) / sizeof(sample_message2[0]);
