@@ -1,9 +1,9 @@
 #include <iostream>
 #include <iomanip>
-#include "layers/Frame.h"
-#include "layers/Packet.h"
-#include "layers/util.h"
-#include "layers/DummyNetworkInterface.h"
+#include "core/Frame.h"
+#include "core/Packet.h"
+#include "core/util.h"
+#include "dummy/DummyNetworkInterface.h"
 
 int main() {
     std::cout << "Testing CRC." << std::endl;

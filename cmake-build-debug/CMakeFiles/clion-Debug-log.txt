@@ -1,4 +1,0 @@
-/home/rando/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" -S "/home/rando/Documents/djohnston8968 classes/COP4610/lrh-storeroom_layers" -B "/home/rando/Documents/djohnston8968 classes/COP4610/lrh-storeroom_layers/cmake-build-debug"
--- Configuring done (0.0s)
--- Generating done (0.0s)
--- Build files have been written to: /home/rando/Documents/djohnston8968 classes/COP4610/lrh-storeroom_layers/cmake-build-debug

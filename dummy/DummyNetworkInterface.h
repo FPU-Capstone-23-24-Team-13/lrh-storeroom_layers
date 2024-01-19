@@ -5,7 +5,7 @@
 #ifndef LRHNET_DUMMYNETWORKINTERFACE_H
 #define LRHNET_DUMMYNETWORKINTERFACE_H
 
-#include "NetworkInterface.h"
+#include "../core/NetworkInterface.h"
 
 namespace lrhnet {
 
