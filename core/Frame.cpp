@@ -88,6 +88,12 @@ namespace lrhnet {
         return received_byte;
     }
 
+    void poll() {
+        for (int i = 0; i < network_interface_count; i++){
+            poll_interface(network_interfaces[i]);
+        }
+    }
+
     void poll_interface(NetworkInterface *interface) {
         bool frame_started = false;
 

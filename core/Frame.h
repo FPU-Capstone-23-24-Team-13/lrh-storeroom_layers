@@ -30,6 +30,8 @@ namespace lrhnet {
 
     uint8_t read_escaped(NetworkInterface *interface);
 
+    void poll();
+
     void poll_interface(NetworkInterface *interface);
 
     void prepare_bytes_send_frame(uint8_t *message, uint32_t length, NetworkInterface *interface);
