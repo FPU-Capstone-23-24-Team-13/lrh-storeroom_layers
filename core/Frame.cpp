@@ -8,12 +8,13 @@
 #include <iomanip>
 
 #include "Frame.h"
+#include "Packet.h"
 
 namespace lrhnet {
     uint32_t crc_polynomial = 0xEDB88320;
 
     Frame::Frame(uint32_t _msg_len, uint8_t *_msg) {
-        flag = 0x7E;
+        flag = FRAME_START;
         msg = _msg;
         msg_len = _msg_len;
         crc = 0xFFFFFFFF;
@@ -58,16 +59,16 @@ namespace lrhnet {
 
         int illegal_char_count = 0;
         for (int i = 0; i < msg_len + 8; i++) {
-            if (buf[i] == 0x7E || buf[i] == 0x7D || buf[i] == 0x00) ++illegal_char_count;
+            if (buf[i] == FRAME_START || buf[i] == FRAME_ESCAPE || buf[i] == 0x00) ++illegal_char_count;
         }
 
         auto *val = new uint8_t[msg_len + 10 + illegal_char_count];
-        val[0] = 0x7E;
+        val[0] = FRAME_START;
         val[msg_len + 9 + illegal_char_count] = 0x00;
         int counter = 1;
         for (int i = 0; i < msg_len + 8; i++) {
-            if (buf[i] == 0x7E || buf[i] == 0x7D || buf[i] == 0x00) {
-                val[counter++] = 0x7D;
+            if (buf[i] == FRAME_START || buf[i] == FRAME_ESCAPE || buf[i] == 0x00) {
+                val[counter++] = FRAME_ESCAPE;
                 val[counter++] = buf[i] ^ 0x20;
             } else {
                 val[counter++] = buf[i];
@@ -77,8 +78,68 @@ namespace lrhnet {
         return val;
     }
 
-    void poll_interface(NetworkInterface *interface) {
+    uint8_t read_escaped(NetworkInterface *interface) {
+        uint8_t received_byte = interface->read_byte_wait();
+        //TODO: Figure out a way to reset the whole frame processing process if 7E is received? (maybe an "illegal" goto? maybe return some value and make the later code handle the jump?)
+        if (received_byte == FRAME_ESCAPE){
+            received_byte = interface->read_byte_wait() ^ 0x20;
+        }
+        //std::cout << "Received unescaped byte: " << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(received_byte) << std::endl;
+        return received_byte;
+    }
 
+    void poll_interface(NetworkInterface *interface) {
+        bool frame_started = false;
+
+        // read the buffer while it is full, emptying it until a start of frame is found
+        while (interface->is_byte_available()){
+            uint8_t start_byte = interface->read_byte();
+            //std::cout << "Checking byte: " << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(start_byte) << std::endl;
+            if (start_byte == FRAME_START){
+                frame_started = true;
+                break;
+            }
+        }
+
+        // if the buffer was emptied, stop here
+        if (!frame_started){
+            return;
+        }
+
+    //frame_reset:  // where to put the label to reset everything, should we want to use it.
+
+        uint32_t message_length = 0;
+        for (int i = sizeof(uint32_t) - 1; i >= 0; i--){
+            message_length |= ((uint32_t)read_escaped(interface)) << (8*i);
+        }
+
+        std::cout << "message has a length of: " << message_length << std::endl;
+
+        auto* frame_message = new uint8_t[message_length];
+
+        for (int i = 0; i < message_length; i++){
+            frame_message[i] = read_escaped(interface);
+        }
+
+        Frame f = Frame(message_length, frame_message);
+
+        uint32_t checksum = 0;
+        for (int i = sizeof(uint32_t) - 1; i >= 0; i--){
+            checksum |= ((uint32_t)read_escaped(interface)) << (8*i);
+        }
+
+        std::cout << "Recv. CRC: 0x" << std::hex << checksum << std::endl;
+        std::cout << "Calc. CRC: 0x" << std::hex << f.get_crc() << std::endl;
+
+        if (checksum == f.get_crc()){
+            std::cout << "Checksums match, processing further." << std::endl;
+            process_packet_bytes(f.msg, f.msg_len, interface);
+        }
+        else {
+            std::cout << "Checksum fail!" << std::endl;
+        }
+
+        delete[] frame_message;
     }
 
     void prepare_bytes_send_frame(uint8_t *message, uint32_t length, NetworkInterface *interface) {

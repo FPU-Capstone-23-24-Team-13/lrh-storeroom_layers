@@ -44,16 +44,17 @@ target_sources(lrhnet-core INTERFACE
 add_library(lrhnet-drivers-dummy INTERFACE)
 
 target_sources(lrhnet-drivers-dummy INTERFACE
-        dummy/DummyNetworkInterface.cpp
-        dummy/DummyNetworkInterface.h
+        ${CMAKE_CURRENT_LIST_DIR}/dummy/DummyNetworkInterface.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/dummy/DummyNetworkInterface.h
 )
 
-add_library(lrhnet-drivers-rp2040 INTERFACE
-        rp2040/SerialNetworkInterface.cpp
-        rp2040/SerialNetworkInterface.h
-)
+add_library(lrhnet-drivers-rp2040 INTERFACE)
 
 target_sources(lrhnet-drivers-rp2040 INTERFACE
+        ${CMAKE_CURRENT_LIST_DIR}/rp2040/SerialNetworkInterface.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/rp2040/SerialNetworkInterface.h
+)
+target_link_libraries(lrhnet-drivers-rp2040 INTERFACE
         pico_stdlib
         hardware_uart
         hardware_exception
@@ -73,6 +74,8 @@ add_executable(rp2040-tester rp2040tester.cpp)
 
 target_link_libraries(rp2040-tester
         pico_stdlib
+        lrhnet-core
+        lrhnet-drivers-rp2040
 )
 
 target_include_directories(rp2040-tester PRIVATE

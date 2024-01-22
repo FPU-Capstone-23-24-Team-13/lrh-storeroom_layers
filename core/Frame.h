@@ -8,6 +8,8 @@
 #include <iostream>
 #include <cstdint>
 #include "NetworkInterface.h"
+#define FRAME_START 0x7E
+#define FRAME_ESCAPE 0x7D
 
 namespace lrhnet {
     class Frame {
@@ -20,12 +22,13 @@ namespace lrhnet {
 
         uint8_t *encode();
 
-    private:
         uint8_t flag;
         uint32_t msg_len;
         uint8_t *msg;
         uint32_t crc;
     };
+
+    uint8_t read_escaped(NetworkInterface *interface);
 
     void poll_interface(NetworkInterface *interface);
 
