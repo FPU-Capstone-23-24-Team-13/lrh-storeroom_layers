@@ -13,7 +13,7 @@
 namespace lrhnet {
     uint32_t crc_polynomial = 0xEDB88320;
 
-    Frame::Frame(uint16_t _msg_len, uint8_t *_msg) {
+    Frame::Frame(uint32_t _msg_len, uint8_t *_msg) {
         flag = FRAME_START;
         msg = _msg;
         msg_len = _msg_len;
@@ -34,7 +34,7 @@ namespace lrhnet {
             }
         }
 
-        for (uint16_t i = 0; i < msg_len; ++i) {
+        for (uint32_t i = 0; i < msg_len; ++i) {
             unsigned byte = msg[i];            // Get next byte.
             crc = crc ^ byte;
             for (int j = 7; j >= 0; j--) {    // Do eight times.
@@ -53,7 +53,7 @@ namespace lrhnet {
 
     uint8_t *Frame::encode() {
         uint8_t buf[msg_len + 8];
-        put_uint16_to_pointer(buf + 0, msg_len);
+        put_uint32_to_pointer(buf + 0, msg_len);
         std::memcpy(buf + 4, msg, (msg_len) * sizeof(uint8_t));
         put_uint32_to_pointer(buf + 4 + msg_len * sizeof(uint8_t), get_crc());
 
@@ -114,9 +114,9 @@ namespace lrhnet {
 
     //frame_reset:  // where to put the label to reset everything, should we want to use it.
 
-        uint16_t message_length = 0;
-        for (int i = sizeof(uint16_t) - 1; i >= 0; i--){
-            message_length |= ((uint16_t)read_escaped(interface)) << (8*i);
+        uint32_t message_length = 0;
+        for (int i = sizeof(uint32_t) - 1; i >= 0; i--){
+            message_length |= ((uint32_t)read_escaped(interface)) << (8*i);
         }
 
         std::cout << "message has a length of: " << message_length << std::endl;
