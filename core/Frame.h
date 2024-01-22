@@ -14,7 +14,7 @@
 namespace lrhnet {
     class Frame {
     public:
-        Frame(uint32_t _msg_len, uint8_t *_msg);
+        Frame(uint16_t _msg_len, uint8_t *_msg);
 
         void calculate_crc();
 
@@ -23,7 +23,7 @@ namespace lrhnet {
         uint8_t *encode();
 
         uint8_t flag;
-        uint32_t msg_len;
+        uint16_t msg_len;
         uint8_t *msg;
         uint32_t crc;
     };
