@@ -6,8 +6,8 @@
 #include "Packet.h"
 #include "Frame.h"
 #include <cstring>
-#include <iomanip>
-#include <iostream>
+//#include <iomanip>
+//#include <iostream>
 
 namespace lrhnet {
 
@@ -97,11 +97,11 @@ namespace lrhnet {
     }
 
     void unbound_port_callback(uint32_t source, uint8_t port, uint8_t* message, uint32_t length){
-        std::cout << "(Packet.cpp) Message received from device " << std::hex << std::setw(8) << std::setfill('0') << source << " on unbound port " << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(port) << ": ";
-        for (uint32_t i = 0; i != length; i++)
-        {
-            std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(message[i]);
-        }
-        std::cout << std::endl;
+        //std::cout << "(Packet.cpp) Message received from device " << std::hex << std::setw(8) << std::setfill('0') << source << " on unbound port " << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(port) << ": ";
+        //for (uint32_t i = 0; i != length; i++)
+        //{
+        //    std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(message[i]);
+        //}
+        //std::cout << std::endl;
     }
 }

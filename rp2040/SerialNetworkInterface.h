@@ -10,6 +10,7 @@
 
 #define READ_BUFFER_SIZE 0x0400
 #define WRITE_CHUNK_SIZE 8
+#define SERIAL_DELAY 100000
 
 namespace lrhnet {
 

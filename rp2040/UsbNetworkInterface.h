@@ -7,6 +7,9 @@
 
 #include "../core/NetworkInterface.h"
 
+#define WRITE_CHUNK_SIZE 8
+#define SERIAL_DELAY 100000
+
 namespace lrhnet {
 
     class UsbNetworkInterface : public NetworkInterface {
@@ -19,6 +22,8 @@ namespace lrhnet {
         void empty_buffer() override;
         void empty_buffer_wait() override;
         void write_buffer(uint8_t* buffer, uint32_t buffer_size) override;
+        bool has_char{};
+        uint8_t last_char{};
     };
 
 } // lrhnet

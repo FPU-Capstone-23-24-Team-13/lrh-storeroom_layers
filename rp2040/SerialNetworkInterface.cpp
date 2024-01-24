@@ -2,12 +2,9 @@
 // Created by rando on 1/19/24.
 //
 
-#include <iostream>
-#include <iomanip>
 #include "SerialNetworkInterface.h"
 #include "../core/util.h"
 
-#define SERIAL_DELAY 100000
 
 namespace lrhnet {
     SerialNetworkInterface::SerialNetworkInterface(int p_id, uart_inst_t* p_uart) : NetworkInterface(p_id), uart(p_uart){
@@ -30,7 +27,7 @@ namespace lrhnet {
             buffer_start = buffer_start % READ_BUFFER_SIZE;
             return byte;
         }
-        return 0x88;
+        return 0x00;
     }
     uint8_t SerialNetworkInterface::read_byte_wait(){
         if (is_byte_available_wait()){
@@ -38,7 +35,7 @@ namespace lrhnet {
             buffer_start = buffer_start % READ_BUFFER_SIZE;
             return byte;
         }
-        return 0x88;
+        return 0x00;
     }
 
 
