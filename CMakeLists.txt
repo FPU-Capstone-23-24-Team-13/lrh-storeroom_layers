@@ -53,6 +53,8 @@ add_library(lrhnet-drivers-rp2040 INTERFACE)
 target_sources(lrhnet-drivers-rp2040 INTERFACE
         ${CMAKE_CURRENT_LIST_DIR}/rp2040/SerialNetworkInterface.cpp
         ${CMAKE_CURRENT_LIST_DIR}/rp2040/SerialNetworkInterface.h
+        ${CMAKE_CURRENT_LIST_DIR}/rp2040/UsbNetworkInterface.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/rp2040/UsbNetworkInterface.h
 )
 target_link_libraries(lrhnet-drivers-rp2040 INTERFACE
         pico_stdlib
