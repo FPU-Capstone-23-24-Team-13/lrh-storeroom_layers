@@ -7,7 +7,7 @@
 #include "UsbNetworkInterface.h"
 
 namespace lrhnet {
-    UsbNetworkInterface::UsbNetworkInterface(int p_id, uint8_t* p_data, std::size_t p_length) : NetworkInterface(p_id), data(p_data), length(p_length){}
+    UsbNetworkInterface::UsbNetworkInterface(int p_id) : NetworkInterface(p_id){}
 
     bool UsbNetworkInterface::is_byte_available(){
         return length > 0;

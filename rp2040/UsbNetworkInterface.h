@@ -11,7 +11,7 @@ namespace lrhnet {
 
     class UsbNetworkInterface : public NetworkInterface {
     public:
-        UsbNetworkInterface(int p_id, uint8_t* p_data, std::size_t p_length);
+        explicit UsbNetworkInterface(int p_id);
         bool is_byte_available() override;
         bool is_byte_available_wait() override;
         uint8_t read_byte() override;
