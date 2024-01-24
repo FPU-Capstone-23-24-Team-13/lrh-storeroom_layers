@@ -57,7 +57,7 @@ namespace lrhnet {
         }
 
         Packet p = Packet(raw_packet, length);
-        std::cout << "Handling packet." << std::endl;
+        //std::cout << "Handling packet." << std::endl;
 
         if (p.destination == device_id) {  // replace 13 with the local destination
             // forward packet to layer 4
@@ -65,17 +65,17 @@ namespace lrhnet {
             return 0;
         } else {
 
-            std::cout << "Rebroadcasting message." << std::endl;
+            //std::cout << "Rebroadcasting message." << std::endl;
             // decay the message
             if (p.decay()) {
-                std::cout << "Belay that. Message is dead." << std::endl;
+                //std::cout << "Belay that. Message is dead." << std::endl;
                 return 0;  // message is dead when decay returns true, stop here.
             }
 
             // resend the decayed packet to all other interfaces
             for (int i = 0; i < network_interface_count; i++) {
                 if (network_interfaces[i] == interface) continue;
-                std::cout << "Rebroadcasting message on interface " << i << std::endl;
+                //std::cout << "Rebroadcasting message on interface " << i << std::endl;
                 send_packet_from(&p, network_interfaces[i]);
             }
             return 0;
@@ -97,7 +97,7 @@ namespace lrhnet {
     }
 
     void unbound_port_callback(uint32_t source, uint8_t port, uint8_t* message, uint32_t length){
-        std::cout << "Message received from device " << std::hex << std::setw(8) << std::setfill('0') << source << " on unbound port " << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(port) << ": ";
+        std::cout << "(Packet.cpp) Message received from device " << std::hex << std::setw(8) << std::setfill('0') << source << " on unbound port " << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(port) << ": ";
         for (uint32_t i = 0; i != length; i++)
         {
             std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(message[i]);

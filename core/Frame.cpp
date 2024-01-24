@@ -119,8 +119,8 @@ namespace lrhnet {
         }
 
     //frame_reset:  // where to put the label to reset everything, should we want to use it.
-        std::cout << "===============================================================================" << std::endl;
-        std::cout << "Reading interface " << interface->id << std::endl;
+        //std::cout << "===============================================================================" << std::endl;
+        //std::cout << "Reading interface " << interface->id << std::endl;
 
         uint32_t message_length = 0;
         for (int i = sizeof(uint32_t) - 1; i >= 0; i--){
@@ -153,15 +153,15 @@ namespace lrhnet {
         //}
         //std::cout << std::endl;
 
-        std::cout << "Recv. CRC: 0x" << std::hex << checksum << std::endl;
-        std::cout << "Calc. CRC: 0x" << std::hex << f.get_crc() << std::endl;
+        //std::cout << "Recv. CRC: 0x" << std::hex << checksum << std::endl;
+        //std::cout << "Calc. CRC: 0x" << std::hex << f.get_crc() << std::endl;
 
         if (checksum == f.get_crc()){
-            std::cout << "Checksums match, processing further." << std::endl;
+            //std::cout << "Checksums match, processing further." << std::endl;
             process_packet_bytes(f.msg, f.msg_len, interface);
         }
         else {
-            std::cout << "Checksum fail!" << std::endl;
+            //std::cout << "Checksum fail!" << std::endl;
         }
 
         delete[] frame_message;
