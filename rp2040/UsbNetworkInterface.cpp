@@ -25,7 +25,7 @@ namespace lrhnet {
     void UsbNetworkInterface::empty_buffer() { }
     void UsbNetworkInterface::empty_buffer_wait() { }
     void UsbNetworkInterface::write_buffer(uint8_t* buffer, uint32_t buffer_size){
-        std::cout << "Writing " << buffer_size << " bytes to usb." << std::endl;
-        //std::cout.write((buffer), buffer_size);
+        //std::cout << "Writing " << buffer_size << " bytes to usb." << std::endl;
+        std::cout.write(reinterpret_cast<const char *>(buffer), buffer_size);
     }
 } // lrhnet

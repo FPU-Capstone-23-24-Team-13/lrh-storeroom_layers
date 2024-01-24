@@ -59,12 +59,12 @@ namespace lrhnet {
     }
 
     void SerialNetworkInterface::write_buffer(uint8_t* buffer, uint32_t buffer_size){
-        std::cout << "Writing " << buffer_size << " bytes to serial " << std::hex << std::setw(2) << std::setfill('0') << id << ": 0x";
+        //std::cout << "Writing " << buffer_size << " bytes to serial " << std::hex << std::setw(2) << std::setfill('0') << id << ": 0x";
         //for (uint32_t i = 0; i != buffer_size; i++)
         //{
         //    std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(buffer[i]);
         //}
-        std::cout << std::endl;
+        //std::cout << std::endl;
 
         size_t written_count = 0;
         for (size_t i = 0; i < buffer_size; ++i) {
