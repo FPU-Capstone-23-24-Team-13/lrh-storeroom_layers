@@ -6,12 +6,19 @@
 #include "Packet.h"
 #include "Frame.h"
 #include <cstring>
+#include <iomanip>
 
 namespace lrhnet {
-    Packet::Packet(uint32_t p_source, uint32_t p_destination, uint8_t p_ttl, uint8_t *p_message, uint32_t p_length) {
+
+    uint32_t device_id = 0x00000012;
+
+    void (*port_callbacks[0x255])(uint32_t, uint8_t port, uint8_t*, uint32_t) = {unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback, unbound_port_callback};
+
+    Packet::Packet(uint32_t p_source, uint32_t p_destination, uint8_t p_ttl, uint8_t p_port, uint8_t *p_message, uint32_t p_length) {
         source = p_source;
         destination = p_destination;
         ttl = p_ttl;
+        port = p_port;
         message = p_message;
         length = p_length;
     }
@@ -21,7 +28,7 @@ namespace lrhnet {
         source = get_uint32_from_pointer(raw_packet + 0);
         destination = get_uint32_from_pointer(raw_packet + 4);
         ttl = *(raw_packet + 8);
-        uint8_t extra = *(raw_packet + 9);
+        port = *(raw_packet + 9);
         message = raw_packet + 10;  // we will use the existing string, instead of copying it.
         length = p_length - 10;
     }
@@ -37,7 +44,7 @@ namespace lrhnet {
         put_uint32_to_pointer(val + 0, source);
         put_uint32_to_pointer(val + 4, destination);
         val[8] = ttl;
-        *(val + 9) = 0xAB;
+        *(val + 9) = port;
         std::memcpy(val + 10, message, (length) * sizeof(uint8_t));
         return val;
     }
@@ -50,8 +57,9 @@ namespace lrhnet {
 
         Packet p = Packet(raw_packet, length);
 
-        if (p.destination == 0x00000013) {  // replace 13 with the local destination
+        if (p.destination == device_id) {  // replace 13 with the local destination
             // forward packet to layer 4
+            port_callbacks[p.port](p.source, p.port, p.message, p.length);
             return 0;
         } else {
             // decay the message
@@ -60,16 +68,32 @@ namespace lrhnet {
             // resend the decayed packet to all other interfaces
             for (int i = 0; i < network_interface_count; i++) {
                 if (network_interfaces[i] == interface) continue;
-                send_packet(&p, network_interfaces[i]);
+                send_packet_from(&p, network_interfaces[i]);
             }
             return 0;
         }
     }
 
-    void send_packet(Packet *p, NetworkInterface *interface) {
+    void send_packet_from(Packet *p, NetworkInterface *interface) {
         //encode the packet
         uint8_t *e_p = p->encode();
         prepare_bytes_send_frame(e_p, p->length + 10, interface);
         delete[] e_p;
+    }
+
+    [[maybe_unused]] void send_message(uint32_t destination, uint8_t port, uint8_t *message, uint32_t length){
+        Packet p = Packet(device_id, destination, 0xFF, port, message, length);
+        for (int i = 0; i < network_interface_count; i++) {
+            send_packet_from(&p, network_interfaces[i]);
+        }
+    }
+
+    void unbound_port_callback(uint32_t source, uint8_t port, uint8_t* message, uint32_t length){
+        std::cout << "Message received from device " << std::hex << std::setw(8) << std::setfill('0') << source << " on unbound port " << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(port) << ": ";
+        for (uint32_t i = 0; i != length; i++)
+        {
+            std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(message[i]);
+        }
+        std::cout << std::endl;
     }
 }

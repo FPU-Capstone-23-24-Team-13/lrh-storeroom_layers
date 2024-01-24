@@ -43,8 +43,8 @@ int main() {
             new lrhnet::DummyNetworkInterface(2, sample_message3, sample_message3_length)};
     lrhnet::network_interfaces = ni;
     lrhnet::network_interface_count = 3;
-    lrhnet::Packet p1 = lrhnet::Packet(0x00000013, 0x00000012, 0x66, sample_message2, sample_message2_length);
-    send_packet(&p1, ni[0]);
+    lrhnet::Packet p1 = lrhnet::Packet(0x00000013, 0x00000012, 0x66, 0x35, sample_message2, sample_message2_length);
+    send_packet_from(&p1, ni[0]);
 
     std::cout << "Simulating receiving that same packet from interface 1." << std::endl;
     uint8_t* sample_packet = p1.encode();
