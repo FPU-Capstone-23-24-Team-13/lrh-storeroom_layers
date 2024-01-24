@@ -27,6 +27,8 @@ namespace lrhnet {
     uint8_t DummyNetworkInterface::read_byte_wait(){
         return read_byte();
     }
+    void DummyNetworkInterface::empty_buffer() { }
+    void DummyNetworkInterface::empty_buffer_wait() { }
     void DummyNetworkInterface::write_buffer(uint8_t* buffer, uint32_t buffer_size){
         std::cout << "Dummy Network Interface " << id << " sending frame: 0x";
         for (uint32_t i = 0; i < buffer_size; i++)

@@ -7,6 +7,7 @@
 #include "Frame.h"
 #include <cstring>
 #include <iomanip>
+#include <iostream>
 
 namespace lrhnet {
 
@@ -56,18 +57,25 @@ namespace lrhnet {
         }
 
         Packet p = Packet(raw_packet, length);
+        std::cout << "Handling packet." << std::endl;
 
         if (p.destination == device_id) {  // replace 13 with the local destination
             // forward packet to layer 4
             port_callbacks[p.port](p.source, p.port, p.message, p.length);
             return 0;
         } else {
+
+            std::cout << "Rebroadcasting message." << std::endl;
             // decay the message
-            if (p.decay()) return 0;  // message is dead when decay returns true, stop here.
+            if (p.decay()) {
+                std::cout << "Belay that. Message is dead." << std::endl;
+                return 0;  // message is dead when decay returns true, stop here.
+            }
 
             // resend the decayed packet to all other interfaces
             for (int i = 0; i < network_interface_count; i++) {
                 if (network_interfaces[i] == interface) continue;
+                std::cout << "Rebroadcasting message on interface " << i << std::endl;
                 send_packet_from(&p, network_interfaces[i]);
             }
             return 0;

@@ -22,6 +22,9 @@ namespace lrhnet {
 
         virtual uint8_t read_byte_wait() = 0;
 
+        virtual void empty_buffer() = 0;
+        virtual void empty_buffer_wait() = 0;
+
         virtual void write_buffer(uint8_t *buffer, uint32_t buffer_size) = 0;
     };
 

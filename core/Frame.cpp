@@ -9,6 +9,7 @@
 
 #include "Frame.h"
 #include "Packet.h"
+//#include <pico/time.h>
 
 namespace lrhnet {
     uint32_t crc_polynomial = 0xEDB88320;
@@ -80,6 +81,9 @@ namespace lrhnet {
 
     uint8_t read_escaped(NetworkInterface *interface) {
         uint8_t received_byte = interface->read_byte_wait();
+        for (int i = 0; i < 20 && received_byte == 0x00; ++i){
+            received_byte = interface->read_byte_wait();
+        }
         //TODO: Figure out a way to reset the whole frame processing process if 7E is received? (maybe an "illegal" goto? maybe return some value and make the later code handle the jump?)
         if (received_byte == FRAME_ESCAPE){
             received_byte = interface->read_byte_wait() ^ 0x20;
@@ -90,6 +94,7 @@ namespace lrhnet {
 
     void poll() {
         for (int i = 0; i < network_interface_count; i++){
+            //std::cout << "===============================================================================" << std::endl;
             poll_interface(network_interfaces[i]);
         }
     }
@@ -98,6 +103,7 @@ namespace lrhnet {
         bool frame_started = false;
 
         // read the buffer while it is full, emptying it until a start of frame is found
+        //std::cout << "polling interface " << interface->id << ", has byte available: " << interface->is_byte_available() << std::endl;
         while (interface->is_byte_available()){
             uint8_t start_byte = interface->read_byte();
             //std::cout << "Checking byte: " << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(start_byte) << std::endl;
@@ -113,13 +119,15 @@ namespace lrhnet {
         }
 
     //frame_reset:  // where to put the label to reset everything, should we want to use it.
+        std::cout << "===============================================================================" << std::endl;
+        std::cout << "Reading interface " << interface->id << std::endl;
 
         uint32_t message_length = 0;
         for (int i = sizeof(uint32_t) - 1; i >= 0; i--){
             message_length |= ((uint32_t)read_escaped(interface)) << (8*i);
         }
 
-        std::cout << "message has a length of: " << message_length << std::endl;
+        //std::cout << "message has a length of: " << message_length << std::endl;
 
         auto* frame_message = new uint8_t[message_length];
 
@@ -133,6 +141,17 @@ namespace lrhnet {
         for (int i = sizeof(uint32_t) - 1; i >= 0; i--){
             checksum |= ((uint32_t)read_escaped(interface)) << (8*i);
         }
+
+        uint8_t *e_f = f.encode();
+        int l = 0;
+        while (e_f[l] != 0x00) l++;
+        l++;
+        //std::cout << "Interface " << interface->id << " received frame: 0x";
+        //for (uint32_t i = 0; i != l; i++)
+        //{
+        //    std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(e_f[i]);
+        //}
+        //std::cout << std::endl;
 
         std::cout << "Recv. CRC: 0x" << std::hex << checksum << std::endl;
         std::cout << "Calc. CRC: 0x" << std::hex << f.get_crc() << std::endl;
@@ -164,7 +183,8 @@ namespace lrhnet {
         //{
         //    std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(e_f[i]);
         //}
-        //std::cout << " at " << std::hex << reinterpret_cast<void *>(e_f) << std::endl;
+        //std::cout << std::endl;
+
         delete[] e_f;
     }
 }

@@ -2,29 +2,80 @@
 // Created by rando on 1/19/24.
 //
 
+#include <iostream>
+#include <iomanip>
 #include "SerialNetworkInterface.h"
+#include "../core/util.h"
 
-#define SERIAL_DELAY 10
+#define SERIAL_DELAY 100000
 
 namespace lrhnet {
-    SerialNetworkInterface::SerialNetworkInterface(int p_id, uart_inst_t* p_uart) : NetworkInterface(p_id), uart(p_uart){}
+    SerialNetworkInterface::SerialNetworkInterface(int p_id, uart_inst_t* p_uart) : NetworkInterface(p_id), uart(p_uart){
+        buffer_start = 0;
+        buffer_end = 0;
+        buffer = new uint8_t[READ_BUFFER_SIZE];
+    }
 
     bool SerialNetworkInterface::is_byte_available(){
-        return uart_is_readable(uart);
+        if (buffer_start == buffer_end) empty_buffer();
+        return buffer_start != buffer_end;
     }
     bool SerialNetworkInterface::is_byte_available_wait(){
-        return uart_is_readable_within_us(uart, SERIAL_DELAY);
+        if (buffer_start == buffer_end) empty_buffer_wait();
+        return buffer_start != buffer_end;
     }
     uint8_t SerialNetworkInterface::read_byte(){
         if (is_byte_available()){
-            return uart_getc(uart);
+            uint8_t byte = buffer[buffer_start++];
+            buffer_start = buffer_start % READ_BUFFER_SIZE;
+            return byte;
         }
-        return 0x00;
+        return 0x88;
     }
     uint8_t SerialNetworkInterface::read_byte_wait(){
-        return read_byte();
+        if (is_byte_available_wait()){
+            uint8_t byte = buffer[buffer_start++];
+            buffer_start = buffer_start % READ_BUFFER_SIZE;
+            return byte;
+        }
+        return 0x88;
     }
+
+
+    void SerialNetworkInterface::empty_buffer(){
+        //std::cout << "emptying buffer for serial " << id << "." << std::endl;
+        while(uart_is_readable(uart)){
+            uint8_t byte = uart_getc(uart);
+            buffer[buffer_end++] = byte;
+            buffer_end = buffer_end % READ_BUFFER_SIZE;
+        }
+    }
+    void SerialNetworkInterface::empty_buffer_wait(){
+        while(uart_is_readable_within_us(uart, SERIAL_DELAY)){
+            uint8_t byte = uart_getc(uart);
+            buffer[buffer_end++] = byte;
+            buffer_end = buffer_end % READ_BUFFER_SIZE;
+        }
+    }
+
     void SerialNetworkInterface::write_buffer(uint8_t* buffer, uint32_t buffer_size){
-        uart_write_blocking(uart, buffer, buffer_size);
+        std::cout << "Writing " << buffer_size << " bytes to serial " << std::hex << std::setw(2) << std::setfill('0') << id << ": 0x";
+        //for (uint32_t i = 0; i != buffer_size; i++)
+        //{
+        //    std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(buffer[i]);
+        //}
+        std::cout << std::endl;
+
+        size_t written_count = 0;
+        for (size_t i = 0; i < buffer_size; ++i) {
+            if (written_count++ % WRITE_CHUNK_SIZE == 0){
+                for (int j = 0; j < network_interface_count; ++j) network_interfaces[j]->empty_buffer();
+            }
+            while (!uart_is_writable(uart))
+                tight_loop_contents();
+            uart_get_hw(uart)->dr = *buffer++;
+        }
+        for (int i = 0; i < network_interface_count; ++i) network_interfaces[i]->empty_buffer();
+        for (int i = 0; i < network_interface_count; ++i) network_interfaces[i]->empty_buffer();
     }
 } // lrhnet
