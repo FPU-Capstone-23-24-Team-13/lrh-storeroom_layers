@@ -10,6 +10,8 @@
 #include "NetworkInterface.h"
 #define FRAME_START 0x7E
 #define FRAME_ESCAPE 0x7D
+#define ASCII_ESCAPE 0x1B
+#define ASCII_DELETE 0x7F
 
 namespace lrhnet {
     class Frame {

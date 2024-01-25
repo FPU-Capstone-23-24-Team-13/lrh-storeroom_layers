@@ -60,7 +60,11 @@ namespace lrhnet {
 
         int illegal_char_count = 0;
         for (int i = 0; i < msg_len + 8; i++) {
-            if (buf[i] == FRAME_START || buf[i] == FRAME_ESCAPE || buf[i] == 0x00) ++illegal_char_count;
+            if (buf[i] == FRAME_START ||
+            buf[i] == FRAME_ESCAPE ||
+            buf[i] == ASCII_ESCAPE ||
+            buf[i] == ASCII_DELETE ||
+            buf[i] == 0x00) ++illegal_char_count;
         }
 
         auto *val = new uint8_t[msg_len + 10 + illegal_char_count];
@@ -68,7 +72,11 @@ namespace lrhnet {
         val[msg_len + 9 + illegal_char_count] = 0x00;
         int counter = 1;
         for (int i = 0; i < msg_len + 8; i++) {
-            if (buf[i] == FRAME_START || buf[i] == FRAME_ESCAPE || buf[i] == 0x00) {
+            if (buf[i] == FRAME_START ||
+            buf[i] == FRAME_ESCAPE ||
+            buf[i] == ASCII_ESCAPE ||
+            buf[i] == ASCII_DELETE ||
+            buf[i] == 0x00) {
                 val[counter++] = FRAME_ESCAPE;
                 val[counter++] = buf[i] ^ 0x20;
             } else {
