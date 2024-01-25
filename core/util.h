@@ -10,6 +10,10 @@
 #define LRH_STOREROOM_LAYERS_UTIL_H
 
 namespace lrhnet {
+    uint64_t get_uint64_from_pointer(const uint8_t *pointer);
+
+    void put_uint64_to_pointer(uint8_t *pointer, uint64_t val);
+
     uint32_t get_uint32_from_pointer(const uint8_t *pointer);
 
     void put_uint32_to_pointer(uint8_t *pointer, uint32_t val);

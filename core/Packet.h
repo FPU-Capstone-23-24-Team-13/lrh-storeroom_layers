@@ -12,7 +12,7 @@
 namespace lrhnet {
     class Packet {
     public:
-        Packet(uint32_t p_source, uint32_t p_destination, uint8_t p_ttl, uint8_t p_port, uint8_t *message,
+        Packet(uint64_t p_source, uint64_t p_destination, uint8_t p_ttl, uint8_t p_port, uint8_t *message,
                uint32_t p_length);
 
         Packet(uint8_t *raw_packet, uint32_t p_length);
@@ -21,8 +21,8 @@ namespace lrhnet {
 
         bool decay();
 
-        uint32_t source;
-        uint32_t destination;
+        uint64_t source;
+        uint64_t destination;
         uint8_t ttl;
         uint8_t port;
         uint32_t length;
@@ -33,13 +33,13 @@ namespace lrhnet {
                              NetworkInterface *interface);  // called by layer 2, does stuff and calls receive_data in layer 4
     void send_packet_from(Packet *p,
                           NetworkInterface *interface); // called by layer 4, does stuff and calls prepare_bytes_send_frame in layer 2
-    [[maybe_unused]] void send_message(uint32_t destination, uint8_t port, uint8_t *message, uint32_t length);
+    [[maybe_unused]] void send_message(uint64_t destination, uint8_t port, uint8_t *message, uint32_t length);
 
-    extern uint32_t device_id;
+    extern uint64_t device_id;
 
-    void unbound_port_callback(uint32_t, uint8_t port, uint8_t *, uint32_t);
+    void unbound_port_callback(uint64_t, uint8_t port, uint8_t *, uint32_t);
 
-    extern void (*port_callbacks[0x255])(uint32_t, uint8_t port, uint8_t *, uint32_t);
+    extern void (*port_callbacks[0x255])(uint64_t, uint8_t port, uint8_t *, uint32_t);
 }
 
 #endif //LRH_STOREROOM_LAYERS_PACKET_H
