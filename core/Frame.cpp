@@ -164,6 +164,8 @@ namespace lrhnet {
             //std::cout << "Checksum fail!" << std::endl;
         }
 
+        delete[] e_f;
+
         delete[] frame_message;
     }
 
