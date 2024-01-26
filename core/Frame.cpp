@@ -150,10 +150,10 @@ namespace lrhnet {
             checksum |= ((uint32_t)read_escaped(interface)) << (8*i);
         }
 
-        uint8_t *e_f = f.encode();
-        int l = 0;
-        while (e_f[l] != 0x00) l++;
-        l++;
+       // uint8_t *e_f = f.encode();
+        //int l = 0;
+        //while (e_f[l] != 0x00) l++;
+        //l++;
         //std::cout << "Interface " << interface->id << " received frame: 0x";
         //for (uint32_t i = 0; i != l; i++)
         //{
@@ -172,7 +172,7 @@ namespace lrhnet {
             //std::cout << "Checksum fail!" << std::endl;
         }
 
-        delete[] e_f;
+        //delete[] e_f;
 
         delete[] frame_message;
     }

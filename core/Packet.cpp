@@ -26,12 +26,12 @@ namespace lrhnet {
 
     Packet::Packet(uint8_t *raw_packet, uint32_t p_length) {
         // decode the packet
-        source = get_uint32_from_pointer(raw_packet + 0);
-        destination = get_uint32_from_pointer(raw_packet + 4);
-        ttl = *(raw_packet + 8);
-        port = *(raw_packet + 9);
-        message = raw_packet + 10;  // we will use the existing string, instead of copying it.
-        length = p_length - 10;
+        source = get_uint64_from_pointer(raw_packet + 0);
+        destination = get_uint64_from_pointer(raw_packet + 8);
+        ttl = *(raw_packet + 16);
+        port = *(raw_packet + 17);
+        message = raw_packet + 18;  // we will use the existing string, instead of copying it.
+        length = p_length - 18;
     }
 
     bool Packet::decay() {
@@ -41,12 +41,12 @@ namespace lrhnet {
     }
 
     uint8_t *Packet::encode() const {
-        auto *val = new uint8_t[length + 10];
-        put_uint32_to_pointer(val + 0, source);
-        put_uint32_to_pointer(val + 4, destination);
-        val[8] = ttl;
-        *(val + 9) = port;
-        std::memcpy(val + 10, message, (length) * sizeof(uint8_t));
+        auto *val = new uint8_t[length + 18];
+        put_uint64_to_pointer(val + 0, source);
+        put_uint64_to_pointer(val + 8, destination);
+        val[16] = ttl;
+        *(val + 17) = port;
+        std::memcpy(val + 18, message, (length) * sizeof(uint8_t));
         return val;
     }
 
@@ -85,7 +85,7 @@ namespace lrhnet {
     void send_packet_from(Packet *p, NetworkInterface *interface) {
         //encode the packet
         uint8_t *e_p = p->encode();
-        prepare_bytes_send_frame(e_p, p->length + 10, interface);
+        prepare_bytes_send_frame(e_p, p->length + 18, interface);
         delete[] e_p;
     }
 
