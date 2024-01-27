@@ -53,7 +53,7 @@ namespace lrhnet {
         size_t written_count = 0;
         for (size_t i = 0; i < buffer_size; ++i) {
             if (written_count++ % WRITE_CHUNK_SIZE == 0){
-                for (int j = 0; j < network_interface_count; ++j) network_interfaces[j]->empty_buffer();
+                empty_buffers();
             }
             putchar(buffer[i]);
             //uart_get_hw(uart)->dr = *buffer++;

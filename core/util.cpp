@@ -59,4 +59,8 @@ namespace lrhnet {
         *(pointer + 1) = (val >> 0) & 0x00FF;
         *(pointer + 0) = (val >> 8) & 0x00FF;
     }
+
+    [[maybe_unused]] void empty_buffers(){
+        for (int j = 0; j < network_interface_count; ++j) network_interfaces[j]->empty_buffer();
+    }
 }

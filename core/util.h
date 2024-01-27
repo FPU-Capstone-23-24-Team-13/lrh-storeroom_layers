@@ -22,6 +22,8 @@ namespace lrhnet {
 
     void put_uint16_to_pointer(uint8_t *pointer, uint16_t val);
 
+    [[maybe_unused]] void empty_buffers();
+
     extern NetworkInterface **network_interfaces;
     extern int network_interface_count;
 }
