@@ -2,14 +2,17 @@
 // Created by rando on 1/19/24.
 //
 
-#include "cstdio"
+#include <cstdio>
 #include "UsbNetworkInterface.h"
-#include "pico/stdlib.h"
+#include <pico/stdlib.h>
 #include "../core/util.h"
 
 
 namespace lrhnet {
-    UsbNetworkInterface::UsbNetworkInterface(int p_id) : NetworkInterface(p_id), has_char(false), last_char(0){}
+    UsbNetworkInterface::UsbNetworkInterface(int p_id) : NetworkInterface(p_id), has_char(false), last_char(0){
+        critical_section_init(&read_buffer_empty_section);
+        mutex_init(&write_mutex);
+    }
 
     bool UsbNetworkInterface::is_byte_available(){
         if (has_char){
@@ -50,6 +53,7 @@ namespace lrhnet {
     void UsbNetworkInterface::write_buffer(uint8_t* buffer, uint32_t buffer_size){
         //std::cout << "Writing " << buffer_size << " bytes to usb." << std::endl;
         //std::cout.write(reinterpret_cast<const char *>(buffer), buffer_size);
+        mutex_enter_blocking(&write_mutex);
         size_t written_count = 0;
         for (size_t i = 0; i < buffer_size; ++i) {
             if (written_count++ % WRITE_CHUNK_SIZE == 0){
@@ -60,5 +64,6 @@ namespace lrhnet {
         }
         for (int i = 0; i < network_interface_count; ++i) network_interfaces[i]->empty_buffer();
         for (int i = 0; i < network_interface_count; ++i) network_interfaces[i]->empty_buffer();
+        mutex_exit(&write_mutex);
     }
 } // lrhnet

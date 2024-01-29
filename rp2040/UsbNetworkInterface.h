@@ -6,6 +6,7 @@
 #define LRHNET_USBNETWORKINTERFACE_H
 
 #include "../core/NetworkInterface.h"
+#include <pico/sync.h>
 
 #define WRITE_CHUNK_SIZE 8
 #define SERIAL_DELAY 100000
@@ -24,6 +25,8 @@ namespace lrhnet {
         void write_buffer(uint8_t* buffer, uint32_t buffer_size) override;
         bool has_char{};
         uint8_t last_char{};
+        critical_section_t read_buffer_empty_section;
+        mutex_t write_mutex;
     };
 
 } // lrhnet

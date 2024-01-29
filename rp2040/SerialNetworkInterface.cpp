@@ -11,6 +11,8 @@ namespace lrhnet {
         buffer_start = 0;
         buffer_end = 0;
         buffer = new uint8_t[READ_BUFFER_SIZE];
+        critical_section_init(&read_buffer_empty_section);
+        mutex_init(&write_mutex);
     }
 
     bool SerialNetworkInterface::is_byte_available(){
@@ -41,18 +43,22 @@ namespace lrhnet {
 
     void SerialNetworkInterface::empty_buffer(){
         //std::cout << "emptying buffer for serial " << id << "." << std::endl;
+        critical_section_enter_blocking(&read_buffer_empty_section);
         while(uart_is_readable(uart)){
             uint8_t byte = uart_getc(uart);
             buffer[buffer_end++] = byte;
             buffer_end = buffer_end % READ_BUFFER_SIZE;
         }
+        critical_section_exit(&read_buffer_empty_section);
     }
     void SerialNetworkInterface::empty_buffer_wait(){
+        critical_section_enter_blocking(&read_buffer_empty_section);
         while(uart_is_readable_within_us(uart, SERIAL_DELAY)){
             uint8_t byte = uart_getc(uart);
             buffer[buffer_end++] = byte;
             buffer_end = buffer_end % READ_BUFFER_SIZE;
         }
+        critical_section_exit(&read_buffer_empty_section);
     }
 
     void SerialNetworkInterface::write_buffer(uint8_t* buffer, uint32_t buffer_size){
@@ -62,7 +68,7 @@ namespace lrhnet {
         //    std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(buffer[i]);
         //}
         //std::cout << std::endl;
-
+        mutex_enter_blocking(&write_mutex);
         size_t written_count = 0;
         for (size_t i = 0; i < buffer_size; ++i) {
             if (written_count++ % WRITE_CHUNK_SIZE == 0){
@@ -74,5 +80,6 @@ namespace lrhnet {
         }
         for (int i = 0; i < network_interface_count; ++i) network_interfaces[i]->empty_buffer();
         for (int i = 0; i < network_interface_count; ++i) network_interfaces[i]->empty_buffer();
+        mutex_exit(&write_mutex);
     }
 } // lrhnet

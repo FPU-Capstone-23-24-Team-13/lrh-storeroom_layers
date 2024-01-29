@@ -5,7 +5,8 @@
 #ifndef NETWORKTESTER_SERIALNETWORKINTERFACE_H
 #define NETWORKTESTER_SERIALNETWORKINTERFACE_H
 
-#include "hardware/uart.h"
+#include <hardware/uart.h>
+#include <pico/sync.h>
 #include "../core/NetworkInterface.h"
 
 #define READ_BUFFER_SIZE 0x0400
@@ -28,6 +29,8 @@ namespace lrhnet {
         uart_inst_t* uart;
         uint8_t* buffer;
         uint32_t buffer_start, buffer_end;
+        critical_section_t read_buffer_empty_section;
+        mutex_t write_mutex;
     };
 
 } // lrhnet
