@@ -18,7 +18,7 @@ if ($ENV{LRHNET_PICO_ENABLED})
     include(pico_sdk_import.cmake)
 
     if (PICO_SDK_VERSION_STRING VERSION_LESS "1.4.0")
-      message(FATAL_ERROR "Raspberry Pi Pico SDK version 1.4.0 (or later) required. Your version is ${PICO_SDK_VERSION_STRING}")
+        message(FATAL_ERROR "Raspberry Pi Pico SDK version 1.4.0 (or later) required. Your version is ${PICO_SDK_VERSION_STRING}")
     endif()
 endif()
 
@@ -61,6 +61,11 @@ target_link_libraries(lrhnet-drivers-rp2040 INTERFACE
         hardware_uart
         hardware_exception
 )
+add_library(lrhnet-drivers-rlc INTERFACE)
+target_sources(lrhnet-drivers-rlc INTERFACE
+        ${CMAKE_CURRENT_LIST_DIR}/rlc/TtyNetworkInterface.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/rlc/TtyNetworkInterface.h
+)
 
 add_executable(NetworkTester main.cpp)
 
@@ -87,3 +92,10 @@ target_include_directories(rp2040-tester PRIVATE
 if ($ENV{LRHNET_PICO_ENABLED})
     pico_add_extra_outputs(rp2040-tester)
 endif()
+
+
+add_executable(rlc-tester rlc_tester.cpp)
+target_link_libraries(rlc-tester
+        lrhnet-core
+        lrhnet-drivers-rlc
+)
