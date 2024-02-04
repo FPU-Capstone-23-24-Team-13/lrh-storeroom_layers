@@ -10,7 +10,7 @@
 // /dev/ttyACM0
 
 #define WRITE_CHUNK_SIZE 8
-#define SERIAL_DELAY 100000
+#define TTY_DELAY 100000
 
 namespace lrhnet {
 
@@ -24,10 +24,10 @@ namespace lrhnet {
         void empty_buffer() override;
         void empty_buffer_wait() override;
         void write_buffer(uint8_t* buffer, uint32_t buffer_size) override;
-        bool has_char{};
-        uint8_t last_char{};
+        //bool has_char{};
+        //uint8_t last_char{};
     };
 
 } // lrhnet
 
-#endif //NETWORKTESTER_TTYNETWORKINTERFACE_H
+#endif //LRHNET_TTYNETWORKINTERFACE_H
