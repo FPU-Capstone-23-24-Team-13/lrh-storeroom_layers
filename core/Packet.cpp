@@ -6,6 +6,7 @@
 #include "Packet.h"
 #include "Frame.h"
 #include <cstring>
+#include <iomanip>
 //#include <iomanip>
 //#include <iostream>
 
@@ -103,5 +104,15 @@ namespace lrhnet {
         //    std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(message[i]);
         //}
         //std::cout << std::endl;
+    }
+
+    [[maybe_unused]] void debug_port_callback(uint64_t source, uint8_t port, uint8_t* message, uint32_t length){
+        std::cout << "(Packet.cpp) Message received from device " << std::hex << std::setw(2 * sizeof(source)) << std::setfill('0') << source << " on debug port " << std::hex << std::setw(2 * sizeof(port)) << std::setfill('0') << static_cast<unsigned int>(port) << std::endl <<"Hex: ";
+        for (uint32_t i = 0; i != length; i++)
+        {
+            std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(message[i]);
+        }
+        std::cout << std::endl;
+        std::cout << "Ascii: " << message << std::endl;
     }
 }

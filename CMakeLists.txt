@@ -99,3 +99,5 @@ target_link_libraries(rlc-tester
         lrhnet-core
         lrhnet-drivers-rlc
 )
+
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/example)

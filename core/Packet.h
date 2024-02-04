@@ -39,6 +39,8 @@ namespace lrhnet {
 
     void unbound_port_callback(uint64_t, uint8_t port, uint8_t *, uint32_t);
 
+    [[maybe_unused]] void debug_port_callback(uint64_t, uint8_t port, uint8_t *, uint32_t);
+
     extern void (*port_callbacks[0x255])(uint64_t, uint8_t port, uint8_t *, uint32_t);
 }
 
