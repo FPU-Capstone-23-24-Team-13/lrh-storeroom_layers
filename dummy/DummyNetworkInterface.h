@@ -26,4 +26,4 @@ namespace lrhnet {
 
 } // lrhnet
 
-#endif //NETWORKTESTER_DUMMYNETWORKINTERFACE_H
+#endif //LRHNET_DUMMYNETWORKINTERFACE_H

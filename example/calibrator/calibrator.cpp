@@ -65,7 +65,7 @@ char *get_command(char *input) {
     return output;
 }
 
-void callback_calibrate_ready(uint64_t source, uint8_t port, uint8_t *message, uint32_t length, char *cleaned_message) {
+void callback_calibrate_ready([[maybe_unused]] uint64_t source, [[maybe_unused]] uint8_t port, [[maybe_unused]] uint8_t *message, [[maybe_unused]] uint32_t length, char *cleaned_message) {
     int mn, n_session, n_ticket;
     sscanf(reinterpret_cast<const char *>(cleaned_message), "calibrate_ready(%d,%d,%d)", &mn, &n_session, &n_ticket);
     if (mn == calibrate_magic_num) return;

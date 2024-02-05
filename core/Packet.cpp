@@ -97,7 +97,7 @@ namespace lrhnet {
         }
     }
 
-    void unbound_port_callback(uint64_t source, uint8_t port, uint8_t* message, uint32_t length){
+    void unbound_port_callback([[maybe_unused]] uint64_t source, [[maybe_unused]] uint8_t port, [[maybe_unused]] uint8_t* message, [[maybe_unused]] uint32_t length){
         //std::cout << "(Packet.cpp) Message received from device " << std::hex << std::setw(8) << std::setfill('0') << source << " on unbound port " << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(port) << ": ";
         //for (uint32_t i = 0; i != length; i++)
         //{

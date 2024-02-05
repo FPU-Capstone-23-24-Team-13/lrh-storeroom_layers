@@ -31,4 +31,4 @@ namespace lrhnet {
 
 } // lrhnet
 
-#endif //NETWORKTESTER_USBNETWORKINTERFACE_H
+#endif //LRHNET_USBNETWORKINTERFACE_H

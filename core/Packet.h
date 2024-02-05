@@ -37,7 +37,7 @@ namespace lrhnet {
 
     extern uint64_t device_id;
 
-    void unbound_port_callback(uint64_t, uint8_t port, uint8_t *, uint32_t);
+    void unbound_port_callback([[maybe_unused]] uint64_t, [[maybe_unused]] uint8_t port, [[maybe_unused]] uint8_t *, [[maybe_unused]] uint32_t);
 
     [[maybe_unused]] void debug_port_callback(uint64_t, uint8_t port, uint8_t *, uint32_t);
 
