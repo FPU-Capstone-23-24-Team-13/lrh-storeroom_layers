@@ -3,43 +3,56 @@
 //
 
 #include <cstdio>
+#include <chrono>
+#include <thread>
 #include "TtyNetworkInterface.h"
 #include "../core/util.h"
-
-
+#include <iostream>
 namespace lrhnet {
     TtyNetworkInterface::TtyNetworkInterface(int p_id, char* tty_name, int baud) : NetworkInterface(p_id){
-        // TODO: Open the serial port file from tty_name. See this section of the mbedded.ninja guide for details:
-        //  https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-ports-using-c-cpp/#basic-setup-in-c
-        // TODO: Set the speed to baud. See these sections of the mbedded.ninja guide for details:
-        //  https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-ports-using-c-cpp/#configuration-setup
-        //  https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-ports-using-c-cpp/#control-modes-c_cflags
-        //  https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-ports-using-c-cpp/#local-modes-c_lflag
-        //  https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-ports-using-c-cpp/#input-modes-c_iflag
-        //  https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-ports-using-c-cpp/#output-modes-c_oflag
-        //  https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-ports-using-c-cpp/#vmin-and-vtime-c_cc
-        //  https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-ports-using-c-cpp/#baud-rate
-        //  https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-ports-using-c-cpp/#saving-termios
-        //  I recommend the following settings (these basically go in the order of the guide):
-        //      No parity
-        //      One stop bit
-        //      8 bits per byte
-        //      No hardware flow control
-        //      CREAD and CLOCAL set
-        //      Disable canonical mode
-        //      Disable all echos (echo, erasure, new line)
-        //      Disable signal characters
-        //      Disable software flow control
-        //      Disable special handling of bytes
-        //      Prevent conversions of output characters
-        //      VMIN 0 and VTIME 0 (read returns immediately)
-        //      Baud 921600 (or 460800 if 921600 not possible easily)
+        // Open serial port
+        serialHandle = open(tty_name, O_RDWR);
+        // Check for error
+        if (serialHandle < 0) {
+            printf("Error %i from open: %s\n", errno, strerror(errno));
+        }
+        // Create new termios struct, we call it 'tty' for convention
+        // No need for "= {0}" at the end as we'll immediately write the existing
+        // config to this struct
+        struct termios tty;
 
+        // Read in existing settings, and handle any error
+        // NOTE: This is important! POSIX states that the struct passed to tcsetattr()
+        // must have been initialized with a call to tcgetattr() overwise behaviour
+        // is undefined
+        if(tcgetattr(serialHandle, &tty) != 0) {
+            printf("Error %i from tcgetattr: %s\n", errno, strerror(errno));
+        }
+        tty.c_cflag &= ~PARENB; // Clear parity bit, disabling parity (most common)
+        tty.c_cflag &= ~CSTOPB; // Clear stop field, only one stop bit used in communication (most common)
+        tty.c_cflag &= ~CSIZE; // Clear all the size bits, then use one of the statements below
+        tty.c_cflag |= CS8; // 8 bits per byte (most common)
+        tty.c_cflag &= ~CRTSCTS; // Disable RTS/CTS hardware flow control (most common)
+        tty.c_cflag |= CREAD | CLOCAL; // Turn on READ & ignore ctrl lines (CLOCAL = 1)
+        tty.c_lflag &= ~ICANON; // Disable canonical mode
+        tty.c_lflag &= ~ECHO; // Disable echo
+        tty.c_lflag &= ~ECHOE; // Disable erasure
+        tty.c_lflag &= ~ECHONL; // Disable new-line echo
+        tty.c_lflag &= ~ISIG; // Disable interpretation of INTR, QUIT and SUSP
+        tty.c_iflag &= ~(IXON | IXOFF | IXANY); // Turn off s/w flow ctrl
+        tty.c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL); // Disable any special handling of received bytes
+        tty.c_oflag &= ~OPOST; // Prevent special interpretation of output bytes (e.g. newline chars)
+        tty.c_oflag &= ~ONLCR; // Prevent conversion of newline to carriage return/line feed
+        tty.c_cc[VTIME] = 0; // Don't wait
+        tty.c_cc[VMIN] = 0; // Don't wait
+        // Set in/out baud rate to be 9600
+        cfsetispeed(&tty, baud); // set baud to integer, works on our compiler but might not on others
+        cfsetospeed(&tty, baud);
     }
-
+    TtyNetworkInterface::~TtyNetworkInterface(){
+        close(serialHandle);
+    }
     bool TtyNetworkInterface::is_byte_available(){
-        // TODO: Make this check for characters in the serial port. Check the mbedded.ninja guide:
-        //  https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-ports-using-c-cpp/#getting-the-number-of-rx-bytes-available
         //if (has_char){
         //    return true;
         //}
@@ -48,32 +61,56 @@ namespace lrhnet {
         //if (result == PICO_ERROR_TIMEOUT) return false;
         //has_char = true;
         //last_char = result;
-        return true;
+        int bytes;
+        ioctl(serialHandle, FIONREAD, &bytes);
+        if (bytes)
+            return true;
+        return false;
     }
 
     bool TtyNetworkInterface::is_byte_available_wait(){
         // TODO: Maybe make this better by re-running is_byte_available() after a brief delay, or even better by
         //  checking is_byte_available() every x many ms up to y total ms. Use the TTY_DELAY macro for the total time
         //  (defined inthe .h file)
-        return is_byte_available();
+        // timers for tracking time
+        auto start_time = std::chrono::steady_clock::now();
+        auto current_time = start_time;
+
+        while (true) {
+            // Immediately available, go
+            if (is_byte_available()) {
+                return true;  // Byte is available
+            }
+
+            // Count the elapsed time using current - start
+            current_time = std::chrono::steady_clock::now();
+            auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - start_time).count();
+
+            // Compare with TTY_DELAY which is max time (10s) and break for timeout if reached
+            if (elapsed_time >= TTY_DELAY) {
+                break;
+            }
+
+            // Put a thread to sleep for INC_DELAY which is the amount of time between checks (10ms) then continue loop
+            std::this_thread::sleep_for(std::chrono::milliseconds(INC_DELAY));
+        }
+        // If byte not available return false
+        return false;
     }
 
     uint8_t TtyNetworkInterface::read_byte(){
         if (is_byte_available()){
-            // TODO: Make this read a single character from the serial port, instead of using the has_char/last_char
-            //  system. I'm not sure if reading a single byte with read(...) or getc(...) is better. For details on
-            //  both, check these resources (remember the serial port is just a file with an open file stream, so normal
-            //  file operations like getc *should* work):
-            //  https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-ports-using-c-cpp/#reading
-            //  https://en.cppreference.com/w/c/io/fgetc
-            //has_char = false;
-            //return last_char;
+            char read_buf;
+            uint8_t n = read(serialHandle, &read_buf, sizeof(read_buf));
+            return n;
         }
         return 0x00;
     }
     uint8_t TtyNetworkInterface::read_byte_wait(){
         if (is_byte_available_wait()){
-            // TODO: Do whatever you do in read byte, but use is_byte_available_wait (already done above).
+            char read_buf;
+            uint8_t n = read(serialHandle, &read_buf, sizeof(read_buf));
+            return n;
         }
         return 0x00;
     }
@@ -81,16 +118,7 @@ namespace lrhnet {
     void TtyNetworkInterface::empty_buffer_wait() { }
 
     void TtyNetworkInterface::write_buffer(uint8_t* buffer, uint32_t buffer_size){
-        //std::cout << "Writing " << buffer_size << " bytes to usb." << std::endl;
-
-        //TODO: Do the same thing as below, but for your open serial port. See the mbedded.ninja guide for details:
-        // https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-ports-using-c-cpp/#writing
-        // It's very similar to what's here, just c syntax not c++.
-        //std::cout.write(reinterpret_cast<const char *>(buffer), buffer_size);
-
-        //for (size_t i = 0; i < buffer_size; ++i) {
-        //    putchar(buffer[i]);
-        //    //uart_get_hw(uart)->dr = *buffer++;
-        //}
+        std::cout << "Writing " << buffer_size << " bytes to usb." << std::endl;
+        write(serialHandle, buffer, buffer_size);
     }
 } // lrhnet
