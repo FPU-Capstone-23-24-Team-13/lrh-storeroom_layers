@@ -67,16 +67,16 @@ namespace lrhnet {
         //if (result == PICO_ERROR_TIMEOUT) return false;
         //has_char = true;
         //last_char = result;
-        return true;
-        int bytes;
-        ioctl(serialHandle, FIONREAD, &bytes);
+        //return true;
+        int bytes = 0;
+        int error = ioctl(serialHandle, FIONREAD, &bytes);
         if (bytes > 0)
             return true;
         return false;
     }
 
     bool TtyNetworkInterface::is_byte_available_wait(){
-        return true;
+        //return true;
         // TODO: Maybe make this better by re-running is_byte_available() after a brief delay, or even better by
         //  checking is_byte_available() every x many ms up to y total ms. Use the TTY_DELAY macro for the total time
         //  (defined inthe .h file)
