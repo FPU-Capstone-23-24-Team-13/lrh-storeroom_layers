@@ -8,6 +8,7 @@
 #include "TtyNetworkInterface.h"
 #include "../core/util.h"
 #include <iostream>
+
 namespace lrhnet {
     TtyNetworkInterface::TtyNetworkInterface(int p_id, char* tty_name, int baud) : NetworkInterface(p_id){
         // Open serial port
@@ -44,14 +45,19 @@ namespace lrhnet {
         tty.c_oflag &= ~OPOST; // Prevent special interpretation of output bytes (e.g. newline chars)
         tty.c_oflag &= ~ONLCR; // Prevent conversion of newline to carriage return/line feed
         tty.c_cc[VTIME] = 0; // Don't wait
-        tty.c_cc[VMIN] = 0; // Don't wait
+        tty.c_cc[VMIN] = 1; // Don't wait
         // Set in/out baud rate to be 9600
         cfsetispeed(&tty, baud); // set baud to integer, works on our compiler but might not on others
         cfsetospeed(&tty, baud);
+
+        if (tcsetattr(serialHandle, TCSANOW, &tty) != 0) {
+            printf("Error %i from tcsetattr: %s\n", errno, strerror(errno));
+        }
     }
     TtyNetworkInterface::~TtyNetworkInterface(){
         close(serialHandle);
     }
+
     bool TtyNetworkInterface::is_byte_available(){
         //if (has_char){
         //    return true;
@@ -61,14 +67,16 @@ namespace lrhnet {
         //if (result == PICO_ERROR_TIMEOUT) return false;
         //has_char = true;
         //last_char = result;
+        return true;
         int bytes;
         ioctl(serialHandle, FIONREAD, &bytes);
-        if (bytes)
+        if (bytes > 0)
             return true;
         return false;
     }
 
     bool TtyNetworkInterface::is_byte_available_wait(){
+        return true;
         // TODO: Maybe make this better by re-running is_byte_available() after a brief delay, or even better by
         //  checking is_byte_available() every x many ms up to y total ms. Use the TTY_DELAY macro for the total time
         //  (defined inthe .h file)
@@ -101,18 +109,26 @@ namespace lrhnet {
     uint8_t TtyNetworkInterface::read_byte(){
         if (is_byte_available()){
             char read_buf;
-            uint8_t n = read(serialHandle, &read_buf, sizeof(read_buf));
-            return n;
+            int count = read(serialHandle, &read_buf, sizeof(read_buf));
+            //std::cout << "Received raw byte: " << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(read_buf) << std::endl;
+            if (count <= 0){
+                printf("error");
+            }
+            return read_buf;
         }
         return 0x00;
     }
     uint8_t TtyNetworkInterface::read_byte_wait(){
-        if (is_byte_available_wait()){
-            char read_buf;
-            uint8_t n = read(serialHandle, &read_buf, sizeof(read_buf));
-            return n;
-        }
-        return 0x00;
+        //if (is_byte_available_wait()){
+            char read_buf[] = {0x00};
+            int count = read(serialHandle, read_buf, sizeof(read_buf));
+            //std::cout << "Received raw byte: " << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(read_buf[0]) << std::endl;
+            if (count <= 0){
+                printf("err");
+            }
+            return read_buf[0];
+        //}
+        //return 0x00;
     }
     void TtyNetworkInterface::empty_buffer() { }
     void TtyNetworkInterface::empty_buffer_wait() { }

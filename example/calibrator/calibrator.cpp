@@ -10,17 +10,24 @@
 #include <unistd.h>
 #include <cstring>
 #include <thread>
+#include <condition_variable>
+#include <chrono>
+using namespace std::chrono_literals;
 
 #define TARGET_ID 123456789
 #define RLC_ID 0
 #define MAX_COUNT
 
 #define TIME_PORT 13       // same as IANA datetime port
+#define PRESENCE_PORT 11   // same as IANA active users port
 #define IDENT_PORT 9       // same as IANA discard port
 #define COUNT_PORT 91      // Unassigned port (right above imap)
 #define CALIBRATE_PORT 92  // Unassigned port (right above imap)
 
 int ticket, session, calibrate_magic_num;
+
+std::mutex m;
+std::condition_variable cv;
 
 char *remove_whitespace(char *input) {
     size_t input_length = strlen(input);
@@ -75,6 +82,7 @@ void callback_calibrate_ready([[maybe_unused]] uint64_t source, [[maybe_unused]]
     session = n_session;
 
     std::cout << "Calibration session opened." << std::endl;
+    cv.notify_all();
 }
 
 void callback_calibrate(uint64_t source, uint8_t port, uint8_t *message, uint32_t length) {
@@ -97,7 +105,6 @@ bool running = true;
 
 void poll_loop(){
     while (running){
-        std::cout << "poll." << std::endl;
         lrhnet::poll();
         //usleep(100 * 1000); // n ms x 1000 us / 1 ms
     }
@@ -105,6 +112,8 @@ void poll_loop(){
 }
 
 int main() {
+    lrhnet::device_id = 0x0000000000000000;
+
     lrhnet::NetworkInterface* ni[] = {
             new lrhnet::TtyNetworkInterface(0, const_cast<char*>("/dev/ttyACM0"), 921600)
     };
@@ -128,9 +137,12 @@ int main() {
     lrhnet::send_message(TARGET_ID, CALIBRATE_PORT, message, length);
 
     // let the reset response come in
-    sleep(1);  // there's some pretty big race conditions here, but eh, I can't be bothered to fix them
+    {
+        std::unique_lock lk(m);
+        cv.wait_for(lk, 5s);
+    }
 
-    if ( session < 0){
+    if (session <= 0){
         std::cout << "Calibration session failed to open in time." << std::endl;
         running = false;
         t.join();

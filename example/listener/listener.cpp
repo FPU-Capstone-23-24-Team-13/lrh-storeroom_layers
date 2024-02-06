@@ -9,8 +9,10 @@
 #include <core/Frame.h>
 
 int main() {
+    lrhnet::device_id = 0x0000000000000000;
+
     lrhnet::NetworkInterface* ni[] = {
-            new lrhnet::TtyNetworkInterface(0, const_cast<char*>("/dev/ttyACM0"), 921600)
+            new lrhnet::TtyNetworkInterface(0, const_cast<char*>("/dev/ttyACM0"), 115200)
     };
     lrhnet::network_interfaces = ni;
     lrhnet::network_interface_count = 1;
