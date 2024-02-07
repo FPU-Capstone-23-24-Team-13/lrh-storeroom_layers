@@ -145,9 +145,9 @@ int main() {
         poll_loop
     };
 
-    std::cout << "Listening for sensors. This will take 60 seconds." << std::endl;
+    std::cout << "Listening for sensors. This will take 15 seconds." << std::endl;
 
-    sleep(6);
+    sleep(15);
 
     size_t selected_device = 0;
 
