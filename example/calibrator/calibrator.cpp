@@ -24,11 +24,16 @@ using namespace std::chrono_literals;
 #define IDENT_PORT 9       // same as IANA discard port
 #define COUNT_PORT 91      // Unassigned port (right above imap)
 #define CALIBRATE_PORT 92  // Unassigned port (right above imap)
+#define NAME_PORT 53       // same as IANA DNS port
 
 int ticket, session, calibrate_magic_num;
 
 std::mutex m;
 std::condition_variable cv;
+
+char* device_names[1024];
+uint64_t devices[1024];  // 1024 is way more than enough, since messages have a ttl of 255.
+size_t device_count;
 
 char *remove_whitespace(char *input) {
     size_t input_length = strlen(input);
@@ -102,16 +107,30 @@ void callback_calibrate(uint64_t source, uint8_t port, uint8_t *message, uint32_
     //delete[] message;
 }
 
-uint64_t devices[1024];  // 1024 is way more than enough, since messages have a ttl of 255.
-size_t device_count;
-
 bool show_presence_messages;
+
+void callback_name(uint64_t source, uint8_t port, uint8_t *message, uint32_t length) {
+    //if (show_presence_messages) std::cout << "Device "  << std::hex << std::setw(16) << source << " named " << message << std::endl;
+    for (size_t i = 0; i < device_count; ++i){
+        if (devices[i] == source){
+            auto name = new char[length+1];
+            memcpy(name, message, length);
+            name[length] = 0x00;
+            delete[] device_names[i];
+            device_names[i] = name;
+            if (show_presence_messages) std::cout << "Device "  << std::hex << std::setw(16) << source << " is named " << name << std::endl;
+            return;
+        }
+    }
+}
 
 void callback_presence(uint64_t source, uint8_t port, uint8_t *message, uint32_t length) {
     for (size_t i = 0; i < device_count; ++i){
         if (devices[i] == source) return;
     }
     if (show_presence_messages) std::cout << "Device "  << std::hex << std::setw(16) << source << " found." << std::endl;
+    const char* resp = ".";
+    lrhnet::send_message(source, NAME_PORT, (uint8_t *) resp, strlen(resp));
     devices[device_count++] = source;
 }
 
@@ -138,6 +157,7 @@ int main() {
 
     lrhnet::port_callbacks[CALIBRATE_PORT] = callback_calibrate;
     lrhnet::port_callbacks[PRESENCE_PORT] = callback_presence;
+    lrhnet::port_callbacks[NAME_PORT] = callback_name;
 
     show_presence_messages = true;
 
@@ -157,7 +177,11 @@ int main() {
         std::cout << "Pick the sensor you want to calibrate." << std::endl;
 
         for (size_t i = 0; i < device_count; ++i){
-        std::cout << "\t" << std::dec << std::setw(0) << i + 1 << ". \t" << std::hex << std::setw(16) << std::setfill('0') << devices[i] << std::endl;
+            const char* dev_name = device_names[i];
+            if (dev_name == nullptr){
+                dev_name = "<UNKNOWN>";
+            }
+            std::cout << "\t" << std::dec << std::setw(0) << i + 1 << ". \t" << dev_name << " - " << std::hex << std::setw(16) << std::setfill('0') << devices[i] << std::endl;
         }
 
         std::cout << ">>: ";
@@ -166,6 +190,20 @@ int main() {
     } while (selected_device <= 0 || selected_device > device_count);
 
     uint64_t target_device = devices[selected_device - 1];
+
+    std::cout << "Enter a new name for the node (enter \".\" to leave unchanged): ";
+
+    std::string name;
+
+    getline(std::cin>>std::ws, name);
+
+    if (name.length() >= 2){
+        std::cout << "Changing name to " << name << std::endl;
+        const char* name_c = name.c_str();
+        lrhnet::send_message(target_device, NAME_PORT, (uint8_t *) name_c, strlen(name_c));
+    } else {
+        std::cout << "Leaving name unchanged." << std::endl;
+    }
 
     std::cout << "Opening calibration session." << std::endl;
 
@@ -179,7 +217,7 @@ int main() {
     // let the reset response come in
     {
         std::unique_lock lk(m);
-        cv.wait_for(lk, 5s);
+        cv.wait_for(lk, 15s);
     }
 
     if (session <= 0){
