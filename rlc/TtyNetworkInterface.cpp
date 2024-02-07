@@ -134,7 +134,7 @@ namespace lrhnet {
     void TtyNetworkInterface::empty_buffer_wait() { }
 
     void TtyNetworkInterface::write_buffer(uint8_t* buffer, uint32_t buffer_size){
-        std::cout << "Writing " << buffer_size << " bytes to usb." << std::endl;
+        //std::cout << "Writing " << buffer_size << " bytes to usb." << buffer << std::endl;
         write(serialHandle, buffer, buffer_size);
     }
 } // lrhnet

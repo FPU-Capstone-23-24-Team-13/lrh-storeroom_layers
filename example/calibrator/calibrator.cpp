@@ -12,9 +12,10 @@
 #include <thread>
 #include <condition_variable>
 #include <chrono>
+#include <iomanip>
+
 using namespace std::chrono_literals;
 
-#define TARGET_ID 123456789
 #define RLC_ID 0
 #define MAX_COUNT
 
@@ -98,7 +99,20 @@ void callback_calibrate(uint64_t source, uint8_t port, uint8_t *message, uint32_
 
     delete[] cleaned_message;
     delete[] command;
-    delete[] message;
+    //delete[] message;
+}
+
+uint64_t devices[1024];  // 1024 is way more than enough, since messages have a ttl of 255.
+size_t device_count;
+
+bool show_presence_messages;
+
+void callback_presence(uint64_t source, uint8_t port, uint8_t *message, uint32_t length) {
+    for (size_t i = 0; i < device_count; ++i){
+        if (devices[i] == source) return;
+    }
+    if (show_presence_messages) std::cout << "Device "  << std::hex << std::setw(16) << source << " found." << std::endl;
+    devices[device_count++] = source;
 }
 
 bool running = true;
@@ -112,20 +126,46 @@ void poll_loop(){
 }
 
 int main() {
+    srand(time(nullptr));
+
     lrhnet::device_id = 0x0000000000000000;
 
     lrhnet::NetworkInterface* ni[] = {
-            new lrhnet::TtyNetworkInterface(0, const_cast<char*>("/dev/ttyACM0"), 921600)
+            new lrhnet::TtyNetworkInterface(0, const_cast<char*>("/dev/serial/by-id/usb-Florida_Polytechnic_LRHNET_Interface_E661640843945622-if00"), 921600)
     };
     lrhnet::network_interfaces = ni;
     lrhnet::network_interface_count = 1;
 
+    lrhnet::port_callbacks[CALIBRATE_PORT] = callback_calibrate;
+    lrhnet::port_callbacks[PRESENCE_PORT] = callback_presence;
+
+    show_presence_messages = true;
 
     std::thread t{
         poll_loop
     };
 
-    lrhnet::port_callbacks[CALIBRATE_PORT] = lrhnet::debug_port_callback;
+    std::cout << "Listening for sensors. This will take 60 seconds." << std::endl;
+
+    sleep(6);
+
+    size_t selected_device = 0;
+
+    show_presence_messages = false;
+
+    do {
+        std::cout << "Pick the sensor you want to calibrate." << std::endl;
+
+        for (size_t i = 0; i < device_count; ++i){
+        std::cout << "\t" << std::dec << std::setw(0) << i + 1 << ". \t" << std::hex << std::setw(16) << std::setfill('0') << devices[i] << std::endl;
+        }
+
+        std::cout << ">>: ";
+
+        std::cin >> selected_device;
+    } while (selected_device <= 0 || selected_device > device_count);
+
+    uint64_t target_device = devices[selected_device - 1];
 
     std::cout << "Opening calibration session." << std::endl;
 
@@ -134,7 +174,7 @@ int main() {
     ticket = rand();
     uint8_t message[buf_size];
     uint32_t length = snprintf(reinterpret_cast<char *>(message), buf_size, "\ncalibrate_reset(%d, %d, %d)\n", mn, ticket, 5);
-    lrhnet::send_message(TARGET_ID, CALIBRATE_PORT, message, length);
+    lrhnet::send_message(target_device, CALIBRATE_PORT, message, length);
 
     // let the reset response come in
     {
@@ -151,20 +191,24 @@ int main() {
     std::cout << "Proceeding to manual input section." << std::endl;
 
     int input = -1;
-    std::cout << "At the prompts, enter the number of items on the scale." << std::endl;
+    std::cout << "At the prompts, enter the number of items on the scale. Enter -1 to exit." << std::endl;
     std::cout << "# items on the scale: ";
     std::cin >> input;
     while (input >= 0) {
+        mn = rand();
+        ticket = rand();
         length = snprintf(reinterpret_cast<char *>(message), buf_size, "\ncalibrate_sample(%d, %d, %d, %d)\n", mn, session, ticket, input);
-        lrhnet::send_message(TARGET_ID, CALIBRATE_PORT, message, length);
+        lrhnet::send_message(target_device, CALIBRATE_PORT, message, length);
         sleep(8);
         std::cout << "# items on the scale: ";
         std::cin >> input;
     }
     std::cout << "Finalizing calibration." << std::endl;
 
+    mn = rand();
+    ticket = rand();
     length = snprintf(reinterpret_cast<char *>(message), buf_size, "\ncalibrate_finalize(%d, %d, %d)\n", mn, session, ticket);
-    lrhnet::send_message(TARGET_ID, CALIBRATE_PORT, message, length);
+    lrhnet::send_message(target_device, CALIBRATE_PORT, message, length);
 
     running = false;
     t.join();
