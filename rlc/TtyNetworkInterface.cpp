@@ -76,10 +76,6 @@ namespace lrhnet {
     }
 
     bool TtyNetworkInterface::is_byte_available_wait(){
-        //return true;
-        // TODO: Maybe make this better by re-running is_byte_available() after a brief delay, or even better by
-        //  checking is_byte_available() every x many ms up to y total ms. Use the TTY_DELAY macro for the total time
-        //  (defined inthe .h file)
         // timers for tracking time
         auto start_time = std::chrono::steady_clock::now();
         auto current_time = start_time;
