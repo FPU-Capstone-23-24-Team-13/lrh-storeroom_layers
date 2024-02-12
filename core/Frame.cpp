@@ -89,6 +89,7 @@ namespace lrhnet {
 
     uint8_t read_escaped(NetworkInterface *interface) {
         uint8_t received_byte = interface->read_byte_wait();
+        empty_buffers();
         for (int i = 0; i < 20 && received_byte == 0x00; ++i){
             received_byte = interface->read_byte_wait();
         }
@@ -113,6 +114,7 @@ namespace lrhnet {
         // read the buffer while it is full, emptying it until a start of frame is found
         //std::cout << "polling interface " << interface->id << ", has byte available: " << interface->is_byte_available() << std::endl;
         while (interface->is_byte_available()){
+            empty_buffers();
             uint8_t start_byte = interface->read_byte();
             //std::cout << "Checking byte: " << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(start_byte) << std::endl;
             if (start_byte == FRAME_START){

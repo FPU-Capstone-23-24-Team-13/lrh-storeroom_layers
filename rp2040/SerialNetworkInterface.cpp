@@ -74,8 +74,10 @@ namespace lrhnet {
             if (written_count++ % WRITE_CHUNK_SIZE == 0){
                 empty_buffers();
             }
-            while (!uart_is_writable(uart))
-                tight_loop_contents();
+            while (!uart_is_writable(uart)){
+                //tight_loop_contents();
+                empty_buffers();  // we're actually going to do something, not just nop
+            }
             uart_get_hw(uart)->dr = *buffer++;
         }
         for (int i = 0; i < network_interface_count; ++i) network_interfaces[i]->empty_buffer();
