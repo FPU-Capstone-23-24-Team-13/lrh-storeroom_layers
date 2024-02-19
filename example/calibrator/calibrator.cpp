@@ -116,6 +116,7 @@ void callback_name(uint64_t source, uint8_t port, uint8_t *message, uint32_t len
             auto name = new char[length+1];
             memcpy(name, message, length);
             name[length] = 0x00;
+            if (device_names[i]) if (!strcmp(name, device_names[i])) return; // same name, don't do anything
             delete[] device_names[i];
             device_names[i] = name;
             if (show_presence_messages) std::cout << "Device "  << std::hex << std::setw(16) << source << " is named " << name << std::endl;
@@ -150,7 +151,7 @@ int main() {
     lrhnet::device_id = 0x0000000000000000;
 
     lrhnet::NetworkInterface* ni[] = {
-            new lrhnet::TtyNetworkInterface(0, const_cast<char*>("/dev/serial/by-id/usb-Florida_Polytechnic_LRHNET_Interface_E661640843945622-if00"), 921600)
+            new lrhnet::TtyNetworkInterface(0, const_cast<char*>("/dev/serial/by-id/usb-Florida_Polytechnic_LRHNET_Interface_E661385283312D25-if00"), 921600)
     };
     lrhnet::network_interfaces = ni;
     lrhnet::network_interface_count = 1;
@@ -165,9 +166,16 @@ int main() {
         poll_loop
     };
 
-    std::cout << "Listening for sensors. This will take 15 seconds." << std::endl;
+    std::cout << "Listening for sensors. This will take 30 seconds." << std::endl;
 
-    sleep(15);
+    for (int t = 0; t < 30; ++t){
+        sleep(1);
+        for (size_t i = 0; i < device_count; ++i){
+            if (device_names[i]) continue;
+            const char* resp = ".";
+            lrhnet::send_message(devices[i], NAME_PORT, (uint8_t *) resp, strlen(resp));
+        }
+    }
 
     size_t selected_device = 0;
 
@@ -200,6 +208,9 @@ int main() {
     if (name.length() >= 2){
         std::cout << "Changing name to " << name << std::endl;
         const char* name_c = name.c_str();
+        lrhnet::send_message(target_device, NAME_PORT, (uint8_t *) name_c, strlen(name_c));
+        lrhnet::send_message(target_device, NAME_PORT, (uint8_t *) name_c, strlen(name_c));
+        lrhnet::send_message(target_device, NAME_PORT, (uint8_t *) name_c, strlen(name_c));
         lrhnet::send_message(target_device, NAME_PORT, (uint8_t *) name_c, strlen(name_c));
     } else {
         std::cout << "Leaving name unchanged." << std::endl;
