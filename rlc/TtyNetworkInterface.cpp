@@ -11,6 +11,9 @@
 
 namespace lrhnet {
     TtyNetworkInterface::TtyNetworkInterface(int p_id, char* tty_name, int baud) : NetworkInterface(p_id){
+        speed = baud;
+        tty_file = new char[strlen(tty_name)];
+        strcpy(tty_file, tty_name);
         // Open serial port
         serialHandle = open(tty_name, O_RDWR);
         // Check for error
@@ -70,6 +73,34 @@ namespace lrhnet {
         //return true;
         int bytes = 0;
         int error = ioctl(serialHandle, FIONREAD, &bytes);
+        if (error != 0){
+            printf("ioctl error ");
+            /**
+            switch (error){
+                case EBADF:
+                    printf("EBADF");
+                    break;
+                case EFAULT:
+                    printf("EFAULT");
+                    break;
+                case EINVAL:
+                    printf("EINVAL");
+                    break;
+                case ENOTTY:
+                    printf("ENOTTY");
+                    break;
+                default:
+                    printf("UNKNOWN");
+            } // **/
+            printf("%s \n", tty_file);  // good point to add a breakpoint
+            // This is a bandaid fix
+            //TODO: fix all the memory leaks this is causing
+            TtyNetworkInterface* new_ni = new TtyNetworkInterface(id, tty_file, speed);
+            network_interfaces[id] = new_ni;
+            close(serialHandle);  // we don't care if it errors out, we just need it closed semi-cleanly
+            delete[] tty_file;
+            delete this;
+        }
         if (bytes > 0)
             return true;
         return false;

@@ -24,6 +24,8 @@ namespace lrhnet {
     class TtyNetworkInterface : public NetworkInterface {
     private:
         int serialHandle;
+        char* tty_file;
+        int speed;
     public:
         TtyNetworkInterface(int p_id, char* tty_name, int baud);
         ~TtyNetworkInterface();
